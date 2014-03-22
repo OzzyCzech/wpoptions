@@ -16,13 +16,20 @@ class WpOptions {
 	 */
 	public function __construct($name = null, array $default = array()) {
 		if ($name === null && __CLASS__ !== get_class($this)) {
-			throw new Exception('Invalid Options name');
+			throw new \Exception('Invalid options name');
 		}
 
 		$this->name = ($name) ? : get_class($this);
 		if ($options = get_option($this->name, null)) {
 			$this->options = array_merge($this->options, $options);
 		}
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getName() {
+		return $this->name;
 	}
 
 	/**
@@ -36,7 +43,7 @@ class WpOptions {
 
 
 	/**
-	 * Update options by post data
+	 * Update options by POST data
 	 *
 	 * @param array $data
 	 * @param string $name
