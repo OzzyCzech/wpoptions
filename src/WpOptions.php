@@ -3,13 +3,10 @@ namespace om;
 /**
  * @author Roman Ozana <ozana@omdesign.cz>
  */
-class WpOptions {
-
-	/** @var array */
-	protected $options = array();
+class WpOptions extends \stdClass {
 
 	/** @var null */
-	private $name = null;
+	protected $name = null;
 
 	/**
 	 * Extract settings
@@ -21,7 +18,10 @@ class WpOptions {
 
 		$this->name = ($name) ? : get_class($this);
 		if ($options = get_option($this->name, null)) {
-			$this->options = array_merge($this->options, $options);
+			$options = array_merge_recursive($default, $options);
+			$this->fromArray($options);
+		} else {
+			$this->fromArray($default);
 		}
 	}
 
@@ -38,24 +38,18 @@ class WpOptions {
 	 * @return array
 	 */
 	public function getOptions() {
-		return $this->options;
+		return ObjectTransform::toArray($this);
 	}
 
-
 	/**
-	 * Update options by POST data
-	 *
 	 * @param array $data
-	 * @param string $name
-	 * @param bool $settype
+	 * @return $this
 	 */
-	public function setByArray(array $data, $name = '%s', $settype = true) {
-		foreach ($this->options as $key => $oldvalue) {
-			$param = sprintf($name, $key);
-			$value = array_key_exists($param, $data) ? $data[$param] : null;
-			if ($settype && $oldvalue !== null) settype($value, gettype($oldvalue)); // use same type as before except null
-			$this->options[$key] = $value;
+	public function fromArray(array &$data) {
+		foreach ($data as $name => $value) {
+			$this->{$name} = $value;
 		}
+		return $this;
 	}
 
 	/**
@@ -63,33 +57,17 @@ class WpOptions {
 	 *
 	 * @return false
 	 */
-	public function saveOptions() {
-		return update_option($this->name, $this->options);
+	public function save() {
+		return update_option($this->name, ObjectTransform::toArray($this));
 	}
+}
 
+class ObjectTransform {
 	/**
-	 * Return settings option
-	 *
-	 * @param string $name
-	 * @return mixed|null
+	 * @param \stdClass $document
+	 * @return array
 	 */
-	public function __get($name) {
-		return array_key_exists($name, $this->options) ? $this->options[$name] : null;
+	public static function toArray(\stdClass $document) {
+		return get_object_vars($document);
 	}
-
-	/**
-	 * Set option value
-	 *
-	 * @param $name
-	 * @param $value
-	 * @throws \Exception
-	 */
-	public function __set($name, $value) {
-		if (array_key_exists($name, $this->options)) {
-			$this->options[$name] = $value;
-		} else {
-			throw new \Exception(sprintf('Uknown option key "%s"', $name));
-		}
-	}
-
 }

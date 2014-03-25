@@ -10,9 +10,8 @@ use Tester\Assert;
 	date_default_timezone_set('Europe/Prague');
 }
 
-
 function get_option($name) {
-	return ['aa' => 'aa'];
+	return null;
 }
 
 $options = new \om\WpOptions();
@@ -20,5 +19,3 @@ Assert::same('om\WpOptions', $options->getName());
 
 $options = new \om\WpOptions('test');
 Assert::same('test', $options->getName());
-
-Assert::same('aa', $options->aa);
